@@ -1,9 +1,5 @@
 package main
 
-// A simple example demonstrating how to draw and animate on a cellular grid.
-// Note that the cellbuffer implementation in this example does not support
-// double-width runes.
-
 import (
 	"strings"
 	"time"
@@ -15,13 +11,35 @@ import (
 var baseStyle = lipgloss.NewStyle().Background(lipgloss.Color("#173f4f")).Foreground(lipgloss.Color("#73ba25"))
 
 const (
-	fps = 30
+	fps = 0
 	//blockchar = "*"
 	//blockchar = "\xE2\x9A\xAC"
 	//blockchar = "\xF0\x9F\x9E\x84" // 🞄
 	blockchar = "\xE2\xAD\x98"
 	radius    = 4
 )
+
+type cellbuffer struct {
+	cells  []string
+	stride int
+}
+
+type model struct {
+	cells                cellbuffer
+	x, y                 float64
+	xVelocity, yVelocity float64
+	terminal_width       int
+	terminal_height      int
+}
+
+func newBall() model {
+	return model{
+		x:         20,
+		y:         10,
+		xVelocity: 0.5,
+		yVelocity: 0.5,
+	}
+}
 
 func writeString(cb *cellbuffer, x, y int, message string) {
 	i := y*cb.stride + x
@@ -81,11 +99,6 @@ func drawEllipse(cb *cellbuffer, xc, yc, rx, ry float64) {
 	}
 }
 
-type cellbuffer struct {
-	cells  []string
-	stride int
-}
-
 func (c *cellbuffer) init(w, h int) {
 	if w == 0 {
 		return
@@ -142,23 +155,6 @@ func animate() tea.Cmd {
 	return tea.Tick(time.Second/fps, func(_ time.Time) tea.Msg {
 		return frameMsg{}
 	})
-}
-
-type model struct {
-	cells                cellbuffer
-	x, y                 float64
-	xVelocity, yVelocity float64
-	terminal_width       int
-	terminal_height      int
-}
-
-func newBall() model {
-	return model{
-		x:         20,
-		y:         10,
-		xVelocity: 0.5,
-		yVelocity: 0.5,
-	}
 }
 
 func (m model) Init() tea.Cmd {
