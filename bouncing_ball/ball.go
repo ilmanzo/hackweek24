@@ -1,10 +1,7 @@
 package main
 
-// A simple example demonstrating how to draw and animate on a cellular grid.
-// Note that the cellbuffer implementation in this example does not support
-// double-width runes.
-
 import (
+	"math/rand"
 	"strings"
 	"time"
 
@@ -12,10 +9,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var baseStyle = lipgloss.NewStyle().Background(lipgloss.Color("#173f4f")).Foreground(lipgloss.Color("#73ba25"))
+var baseStyle = lipgloss.NewStyle().Background(lipgloss.Color("#0c322c")).Foreground(lipgloss.Color("#30ba78")).Bold(true)
 
 const (
-	fps = 30
+	fps = 60
 	//blockchar = "*"
 	//blockchar = "\xE2\x9A\xAC"
 	//blockchar = "\xF0\x9F\x9E\x84" // 🞄
@@ -23,8 +20,35 @@ const (
 	radius    = 4
 )
 
+type cellbuffer struct {
+	cells  []string
+	stride int
+}
+
+type model struct {
+	cells                cellbuffer
+	x, y                 float64
+	xVelocity, yVelocity float64
+	terminal_width       int
+	terminal_height      int
+	geekox               float64
+}
+
+func newBall() model {
+	return model{
+		x:         20,
+		y:         10,
+		xVelocity: 0.5,
+		yVelocity: 0.5,
+		geekox:    0,
+	}
+}
+
 func writeString(cb *cellbuffer, x, y int, message string) {
 	i := y*cb.stride + x
+	if i > len(cb.cells)-1 || i < 0 {
+		return
+	}
 	for _, ch := range strings.Split(message, "") {
 		cb.cells[i] = ch
 		i++
@@ -79,11 +103,6 @@ func drawEllipse(cb *cellbuffer, xc, yc, rx, ry float64) {
 			d2 = d2 + dx - dy + (rx * rx)
 		}
 	}
-}
-
-type cellbuffer struct {
-	cells  []string
-	stride int
 }
 
 func (c *cellbuffer) init(w, h int) {
@@ -144,25 +163,24 @@ func animate() tea.Cmd {
 	})
 }
 
-type model struct {
-	cells                cellbuffer
-	x, y                 float64
-	xVelocity, yVelocity float64
-	terminal_width       int
-	terminal_height      int
-}
-
-func newBall() model {
-	return model{
-		x:         20,
-		y:         10,
-		xVelocity: 0.5,
-		yVelocity: 0.5,
-	}
-}
-
 func (m model) Init() tea.Cmd {
 	return animate()
+}
+
+// https://www.zq1.de/%7Ebernhard/images/share/geeko/logo.txt
+func drawGeeko(cb *cellbuffer, x int) {
+	writeString(cb, x, 10, "            ▁▃▄▅▆▇▇▇▇▇▇▇▆▅▅▄▃▂     ▕▇▆▄▂")
+	writeString(cb, x, 11, "        ▂▄▆████████████████████▇▆▄▂▕█████▆▄▂")
+	writeString(cb, x, 12, "     ▂▅█████████████████████████████████▛▀▔▔▀▖")
+	writeString(cb, x, 13, "   ▗▆███████████████████████████████████▏  ▗▖▐▖")
+	writeString(cb, x, 14, "  ▄████▀▀▀▔▔▀▀▀█████████████████████████▙▁  ▁▟▊")
+	writeString(cb, x, 15, " ▐███▀   ▁▂▂▂   ▔▜████████████████████▙▃▀▀▀▀▀▀▀")
+	writeString(cb, x, 16, " ███▍  ▗▇█▀▀▀█▆▖  ▀███████████████████████▇▇▀▀")
+	writeString(cb, x, 17, " ▜██▎  ▐█▎    ▜█▖  ▐████▀▀▀▀▀▀████▊   ▔▔▔▔  ")
+	writeString(cb, x, 18, " ▝██▙   ▀▀    ▐█▊   ▜███▃▁     ▔▜██▃▁")
+	writeString(cb, x, 19, "  ▝███▄▂    ▂▅██▘    ▔▀▀▀▀▀      ▀▀▀▀▀")
+	writeString(cb, x, 20, "   ▔▀█████████▛▘")
+	writeString(cb, x, 21, "      ▔▀▀▀▀▀▀▔ ")
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -183,16 +201,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if newx <= 2*radius || newx >= float64(m.terminal_width)-2*radius {
 			m.xVelocity = -m.xVelocity
 		}
-		if newy <= radius || newy >= float64(m.terminal_height)-radius {
+		if newy >= float64(m.terminal_height)-radius {
 			m.yVelocity = -m.yVelocity
+			if rand.Intn(10) == 1 {
+				m.yVelocity -= rand.Float64() / 2
+			}
+
 		}
+		m.yVelocity += 0.03
 		m.x += m.xVelocity
 		m.y += m.yVelocity
+		m.geekox += 0.02
+		if int(m.geekox) > m.terminal_width-47 {
+			m.geekox = 0
+		}
 		m.cells.wipe()
 		drawEllipse(&m.cells, m.x, m.y, 2*radius, radius)
 		writeString(&m.cells, int(m.x)-2, int(m.y)-1, "SUSE")
-		writeString(&m.cells, int(m.x)-5, int(m.y), "HackWeek 24")
-		writeString(&m.cells, int(m.x)-2, int(m.y)+1, "Enjoy!")
+		writeString(&m.cells, int(m.x)-4, int(m.y), "HackWeek")
+		writeString(&m.cells, int(m.x)-2, int(m.y)+1, "2024")
+		drawGeeko(&m.cells, int(m.geekox))
 		return m, animate()
 	default:
 		return m, nil
