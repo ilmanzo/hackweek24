@@ -12,7 +12,7 @@ import (
 var baseStyle = lipgloss.NewStyle().Background(lipgloss.Color("#0c322c")).Foreground(lipgloss.Color("#30ba78")).Bold(true)
 
 const (
-	fps = 60
+	fps = 50
 	//blockchar = "*"
 	//blockchar = "\xE2\x9A\xAC"
 	//blockchar = "\xF0\x9F\x9E\x84" // 🞄
@@ -211,7 +211,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.yVelocity += 0.03
 		m.x += m.xVelocity
 		m.y += m.yVelocity
-		m.geekox += 0.02
+		m.geekox += 0.03
 		if int(m.geekox) > m.terminal_width-47 {
 			m.geekox = 0
 		}
