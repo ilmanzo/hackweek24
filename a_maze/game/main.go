@@ -14,8 +14,16 @@ func main() {
 	p := tea.NewProgram(
 		maze.NewMaze(20, 20), tea.WithAltScreen(),
 	)
-	if _, err := p.Run(); err != nil {
+	m, err := p.Run()
+	if err != nil {
 		fmt.Printf("Whops, there's been an error: %v", err)
 		os.Exit(1)
 	}
+	// Run() returns an interface, need type assertion to get the original type
+	maze, ok := m.(maze.MazeModel)
+	if !ok {
+		fmt.Println("Unexpected model type!")
+		os.Exit(1)
+	}
+	fmt.Printf("\n Good game! You made %d steps in the maze\n", maze.StepsDone)
 }

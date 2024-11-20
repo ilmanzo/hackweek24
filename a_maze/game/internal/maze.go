@@ -3,26 +3,22 @@ package maze
 import (
 	"math/rand"
 	"strings"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-const (
-	fps = 25
-)
-
 // this is our data model
-// every maze cell is a string of two runes
-type maze struct {
-	cells     []byte
+// every MazeModel cell is a string of two runes
+type MazeModel struct {
+	cells     []cellContent
 	width     int
 	height    int
 	playerX   int
 	playerY   int
 	treasureX int
 	treasureY int
+	StepsDone int // exported step counter
 }
 
 // use official SUSE colors for default background and foreground
@@ -32,6 +28,15 @@ var commonBG = lipgloss.Color("#192072")
 var mazeStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#2453ff"))
 var playerStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#efefef"))
 var treasureStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#fe7c3f"))
+
+type cellContent byte
+
+const (
+	EmptyCell = iota
+	WallCell
+	TreasureCell
+	PlayerCell
+)
 
 // 0 = empty space
 // 1 = wall
@@ -44,9 +49,9 @@ var valToString = [4]string{
 	playerStyle.Render("🦔"),
 }
 
-func NewMaze(w, h int) maze {
-	cells := make([]byte, w*h)
-	m := maze{cells: cells, width: w, height: h}
+func NewMaze(w, h int) MazeModel {
+	cells := make([]cellContent, w*h)
+	m := MazeModel{cells: cells, width: w, height: h, StepsDone: 0}
 	// draw borders
 	for x := 0; x < w; x++ {
 		m.set(x, 0, 1)
@@ -82,20 +87,18 @@ func NewMaze(w, h int) maze {
 	for i := 0; i < (w*h)/4; i++ {
 		m.set(2+rand.Intn(w-3), 2+rand.Intn(h-3), 0)
 	}
-	//place player (in the center)
-	//and treasure (random)
+	//place player (+/- in the center)
 	m.playerX = w / 2
 	m.playerY = h / 2
 	m.set(m.playerX, m.playerY, 3)
+	//and treasure (random)
 	m.treasureX = 3 + rand.Intn(w-4)
 	m.treasureY = 3 + rand.Intn(h-4)
 	m.set(m.treasureX, m.treasureY, 2)
 	return m
 }
 
-// value 1 = turn on pixel
-// value 0 = turn off pixel
-func (m *maze) set(x, y int, value byte) {
+func (m *MazeModel) set(x, y int, value cellContent) {
 	i := y*m.width + x
 	if i > len(m.cells)-1 || x < 0 || y < 0 || x >= m.width || y >= m.height {
 		return
@@ -103,7 +106,7 @@ func (m *maze) set(x, y int, value byte) {
 	m.cells[i] = value
 }
 
-func (m *maze) get(x, y int) byte {
+func (m *MazeModel) get(x, y int) cellContent {
 	i := y*m.width + x
 	if i > len(m.cells)-1 || x < 0 || y < 0 || x >= m.width || y >= m.height {
 		return 1
@@ -111,7 +114,8 @@ func (m *maze) get(x, y int) byte {
 	return m.cells[i]
 }
 
-func (m *maze) checkForTreasure() (tea.Model, tea.Cmd) {
+func (m *MazeModel) checkForTreasure() (tea.Model, tea.Cmd) {
+	m.StepsDone += 1
 	if m.playerX == m.treasureX && m.playerY == m.treasureY {
 		return m, tea.Quit
 	}
@@ -119,7 +123,7 @@ func (m *maze) checkForTreasure() (tea.Model, tea.Cmd) {
 }
 
 // returns a string representing our model
-func (m maze) View() string {
+func (m MazeModel) View() string {
 	var sb strings.Builder
 	for y := 0; y < m.height; y++ {
 		for x := 0; x < m.width; x++ {
@@ -134,64 +138,46 @@ func (m maze) View() string {
 }
 
 // nothing to do on startup
-func (m maze) Init() tea.Cmd {
-	return animate()
-}
-
-type frameMsg struct{}
-
-func animate() tea.Cmd {
-	return tea.Tick(time.Second/fps, func(_ time.Time) tea.Msg {
-		return frameMsg{}
-	})
+func (m MazeModel) Init() tea.Cmd {
+	return nil
 }
 
 // this function is automatically called by framework
 // with a message as parameter
-func (m maze) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MazeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC || msg.Type == tea.KeyEsc {
 			return m, tea.Quit
 		}
-		if msg.Type == tea.KeyUp {
-			if m.get(m.playerX, m.playerY-1)%2 == 0 {
-				m.set(m.playerX, m.playerY, 0)
-				m.playerY -= 1
-				m.set(m.playerX, m.playerY, 3)
-				return m.checkForTreasure()
-			}
+		if msg.Type == tea.KeyUp && m.get(m.playerX, m.playerY-1)%2 == 0 {
+			m.set(m.playerX, m.playerY, 0)
+			m.playerY -= 1
+			m.set(m.playerX, m.playerY, 3)
+			return m.checkForTreasure()
 		}
-		if msg.Type == tea.KeyDown {
-			if m.get(m.playerX, m.playerY+1)%2 == 0 {
-				m.set(m.playerX, m.playerY, 0)
-				m.playerY += 1
-				m.set(m.playerX, m.playerY, 3)
-				return m.checkForTreasure()
-			}
+		if msg.Type == tea.KeyDown && m.get(m.playerX, m.playerY+1)%2 == 0 {
+			m.set(m.playerX, m.playerY, 0)
+			m.playerY += 1
+			m.set(m.playerX, m.playerY, 3)
+			return m.checkForTreasure()
 		}
-		if msg.Type == tea.KeyLeft {
-			if m.get(m.playerX-1, m.playerY)%2 == 0 {
-				m.set(m.playerX, m.playerY, 0)
-				m.playerX -= 1
-				m.set(m.playerX, m.playerY, 3)
-				return m.checkForTreasure()
-			}
+		if msg.Type == tea.KeyLeft && m.get(m.playerX-1, m.playerY)%2 == 0 {
+			m.set(m.playerX, m.playerY, 0)
+			m.playerX -= 1
+			m.set(m.playerX, m.playerY, 3)
+			return m.checkForTreasure()
 		}
-		if msg.Type == tea.KeyRight {
-			if m.get(m.playerX+1, m.playerY)%2 == 0 {
-				m.set(m.playerX, m.playerY, 0)
-				m.playerX += 1
-				m.set(m.playerX, m.playerY, 3)
-				return m.checkForTreasure()
-			}
+		if msg.Type == tea.KeyRight && m.get(m.playerX+1, m.playerY)%2 == 0 {
+			m.set(m.playerX, m.playerY, 0)
+			m.playerX += 1
+			m.set(m.playerX, m.playerY, 3)
+			return m.checkForTreasure()
 		}
-	case frameMsg:
-		return m, animate()
 	case tea.WindowSizeMsg:
+		// on resize, generate a new Maze
+		// half width because every maze cell is 2 chars
 		return NewMaze(msg.Width/2, msg.Height), nil
-	default:
-		return m, nil
 	}
 	return m, nil
 }
