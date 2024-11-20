@@ -1,7 +1,6 @@
 package maze
 
 import (
-	"fmt"
 	"strings"
 
 	"math/rand"
@@ -10,24 +9,36 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// this is our data model
 // every maze cell is a string of two runes
 type maze struct {
-	cells  []string
-	width  int
-	height int
+	cells     []byte
+	width     int
+	height    int
+	playerX   int
+	playerY   int
+	treasureX int
+	treasureY int
 }
 
 // use official SUSE colors for default background and foreground
 // Midnight background, Waterhole foreground
 // https://brand.suse.com/design-language#color
-var mazeStyle = lipgloss.NewStyle().Background(lipgloss.Color("#192072")).Foreground(lipgloss.Color("#2453ff"))
-var playerStyle = 
+var commonBG = lipgloss.Color("#192072")
+var mazeStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#2453ff"))
+var playerStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#efefef"))
+var treasureStyle = lipgloss.NewStyle().Background(commonBG).Foreground(lipgloss.Color("#fe7c3f"))
 
 // 0 = empty space
-// 1 = only bottom filled
-// 2 = only top filled
-// 3 = both filled
-var valToRune = [4]rune{' ', '\u2584', '\u2580', '\u2588'}
+// 1 = wall
+// 2 = player
+// 3 = treasure
+var valToString = [4]string{
+	mazeStyle.Render("  "),
+	mazeStyle.Render("\u2588\u2588"),
+	playerStyle.Render("🦔"),
+	treasureStyle.Render("🎂"),
+}
 
 func NewMaze(w, h int) maze {
 	cells := make([]byte, w*h)
@@ -63,11 +74,18 @@ func NewMaze(w, h int) maze {
 			}
 		}
 	}
-	// carve some extra random spots (20%)
-	for i := 0; i < (w*h)/5; i++ {
+	// carve some extra random spots (25%)
+	for i := 0; i < (w*h)/4; i++ {
 		m.set(2+rand.Intn(w-3), 2+rand.Intn(h-3), 0)
 	}
-
+	//place player (in the center)
+	//and treasure (random)
+	m.playerX = w / 2
+	m.playerY = h / 2
+	m.set(m.playerX, m.playerY, 2)
+	m.treasureX = 2 + rand.Intn(w-3)
+	m.treasureY = 2 + rand.Intn(h-3)
+	m.set(m.treasureX, m.treasureY, 3)
 	return m
 }
 
@@ -82,16 +100,13 @@ func (m *maze) set(x, y int, value byte) {
 }
 
 // returns a string representing our model
-func (m maze) toString() string {
+func (m maze) View() string {
 	var sb strings.Builder
-	y := 0
-	for y < m.height {
+	for y := 0; y < m.height; y++ {
 		for x := 0; x < m.width; x++ {
-			up := x + y*m.width
-			down := up + m.width
-			sb.WriteRune(valToRune[2*m.cells[up]+m.cells[down]])
+			i := x + y*m.width
+			sb.WriteString(valToString[m.cells[i]])
 		}
-		y += 2
 		if y < m.height-1 {
 			sb.WriteRune('\n')
 		}
@@ -111,20 +126,8 @@ func (m maze) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		return m, tea.Quit
 	case tea.WindowSizeMsg:
-		return NewMaze(msg.Width, msg.Height*2), nil
+		return NewMaze(msg.Width/2, msg.Height), nil
 	default:
 		return m, nil
-	}
-}
-
-// this must return a string rapresentation of our model
-func (m maze) View() string {
-	return mazeStyle.Render(m.toString())
-}
-
-// utility func for debugging
-func (m maze) print() {
-	for i := 0; i < len(m.cells); i++ {
-		fmt.Print(m.cells[i])
 	}
 }

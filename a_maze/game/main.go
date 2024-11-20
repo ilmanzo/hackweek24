@@ -5,7 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	maze "github.com/ilmanzo/hackweek24/a_maze/game/internal/maze"
+	maze "github.com/ilmanzo/hackweek24/a_maze/game/internal"
 )
 
 // main purpose of this projects is to learn and explore the Go import rules and directory structure

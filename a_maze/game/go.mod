@@ -1,4 +1,5 @@
 module github.com/ilmanzo/hackweek24/a_maze/game
+
 go 1.23.3
 
 require (
@@ -23,4 +24,3 @@ require (
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.3.8 // indirect
 )
-

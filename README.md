@@ -15,4 +15,3 @@ For each folder, you can simply `go run .` to execute the program (or `go progra
 
 You can find other projects and details about HackWeek [here](https://hackweek.opensuse.org)
 
-
