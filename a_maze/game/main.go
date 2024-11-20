@@ -20,9 +20,9 @@ func main() {
 		os.Exit(1)
 	}
 	// Run() returns an interface, need type assertion to get the original type
-	maze, ok := m.(maze.MazeModel)
+	maze, ok := m.(*maze.MazeModel)
 	if !ok {
-		fmt.Printf("Unexpected model type: %v\n", maze)
+		fmt.Printf("Unexpected model type: %T\n", maze)
 		os.Exit(1)
 	}
 	fmt.Printf("\n Good game! You made %d steps in the maze\n", maze.StepsDone)
