@@ -1,12 +1,13 @@
-module github.com/ilmanzo/hackweek24/games
-
+module github.com/ilmanzo/hackweek24/a_maze/game
 go 1.23.3
 
-require github.com/charmbracelet/bubbletea v1.2.2
+require (
+	github.com/charmbracelet/bubbletea v1.2.2
+	github.com/charmbracelet/lipgloss v1.0.0
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/lipgloss v1.0.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
@@ -22,3 +23,4 @@ require (
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.3.8 // indirect
 )
+

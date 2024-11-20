@@ -17,6 +17,8 @@ type maze struct {
 }
 
 // use official SUSE colors for default background and foreground
+// Midnight background, Waterhole foreground
+// https://brand.suse.com/design-language#color
 var baseStyle = lipgloss.NewStyle().Background(lipgloss.Color("#192072")).Foreground(lipgloss.Color("#2453ff"))
 
 // 0 = empty space

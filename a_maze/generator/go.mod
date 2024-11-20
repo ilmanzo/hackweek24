@@ -1,4 +1,4 @@
-module github.com/ilmanzo/hackweek24/maze_generator
+module github.com/ilmanzo/hackweek24/a_maze/generator
 
 go 1.23.3
 
