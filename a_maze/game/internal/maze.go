@@ -8,19 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// this is our data model
-// every MazeModel cell is a string of two runes
-type MazeModel struct {
-	cells     []cellContent
-	width     int
-	height    int
-	playerX   int
-	playerY   int
-	treasureX int
-	treasureY int
-	StepsDone int // exported step counter
-}
-
 // use official SUSE colors for default background and foreground
 // Midnight background, Waterhole foreground
 // https://brand.suse.com/design-language#color
@@ -36,17 +23,36 @@ const (
 	WallCell
 	TreasureCell
 	PlayerCell
+	DoorCell
+	nDoors = 7
 )
 
 // 0 = empty space
 // 1 = wall
 // 2 = treasure
 // 3 = player
-var valToString = [4]string{
+// 4 = door
+var valToString = [5]string{
 	mazeStyle.Render("  "),
 	mazeStyle.Render("\u2588\u2588"),
-	treasureStyle.Render("🎂"),
-	playerStyle.Render("🦔"),
+	mazeStyle.Render("🪪"),
+	mazeStyle.Render("🐧"),
+	mazeStyle.Render("🚪"),
+}
+
+// this is our data model
+// every MazeModel cell is a string of two runes
+type MazeModel struct {
+	cells     []cellContent
+	width     int
+	height    int
+	playerX   int
+	playerY   int
+	treasureX int
+	treasureY int
+	StepsDone int // exported step counter
+	doorsX    [nDoors]int
+	doorsY    [nDoors]int
 }
 
 func NewMaze(w, h int) MazeModel {
@@ -83,18 +89,25 @@ func NewMaze(w, h int) MazeModel {
 			}
 		}
 	}
-	// carve some extra random spots (25%)
-	for i := 0; i < (w*h)/4; i++ {
+	// carve some extra random spots (20%)
+	for i := 0; i < (w*h)/5; i++ {
 		m.set(2+rand.Intn(w-3), 2+rand.Intn(h-3), 0)
 	}
 	//place player (+/- in the center)
 	m.playerX = w / 2
 	m.playerY = h / 2
-	m.set(m.playerX, m.playerY, 3)
-	//and treasure (random)
+	m.set(m.playerX, m.playerY, PlayerCell)
+	//some doors (random)
+	for i := 0; i < nDoors; i++ {
+		m.doorsX[i] = 3 + rand.Intn(w-4)
+		m.doorsY[i] = 3 + rand.Intn(h-4)
+		m.set(m.doorsX[i], m.doorsY[i], DoorCell)
+	}
+	//treasure (random)
 	m.treasureX = 3 + rand.Intn(w-4)
 	m.treasureY = 3 + rand.Intn(h-4)
-	m.set(m.treasureX, m.treasureY, 2)
+	m.set(m.treasureX, m.treasureY, TreasureCell)
+
 	return m
 }
 
@@ -114,8 +127,16 @@ func (m *MazeModel) get(x, y int) cellContent {
 	return m.cells[i]
 }
 
-func (m *MazeModel) checkForTreasure() (tea.Model, tea.Cmd) {
+func (m *MazeModel) checkCollisions() (tea.Model, tea.Cmd) {
 	m.StepsDone += 1
+	for i := 0; i < nDoors; i++ {
+		if m.playerX == m.doorsX[i] && m.playerY == m.doorsY[i] {
+			m.set(m.playerX, m.playerY, DoorCell)
+			m.playerX = m.width / 2
+			m.playerY = m.height / 2
+			m.set(m.playerX, m.playerY, PlayerCell)
+		}
+	}
 	if m.playerX == m.treasureX && m.playerY == m.treasureY {
 		return m, tea.Quit
 	}
@@ -148,31 +169,31 @@ func (m MazeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC || msg.Type == tea.KeyEsc {
-			return m, tea.Quit
+			return &m, tea.Quit
 		}
 		if msg.Type == tea.KeyUp && m.get(m.playerX, m.playerY-1)%2 == 0 {
 			m.set(m.playerX, m.playerY, 0)
 			m.playerY -= 1
 			m.set(m.playerX, m.playerY, 3)
-			return m.checkForTreasure()
+			return m.checkCollisions()
 		}
 		if msg.Type == tea.KeyDown && m.get(m.playerX, m.playerY+1)%2 == 0 {
 			m.set(m.playerX, m.playerY, 0)
 			m.playerY += 1
 			m.set(m.playerX, m.playerY, 3)
-			return m.checkForTreasure()
+			return m.checkCollisions()
 		}
 		if msg.Type == tea.KeyLeft && m.get(m.playerX-1, m.playerY)%2 == 0 {
 			m.set(m.playerX, m.playerY, 0)
 			m.playerX -= 1
 			m.set(m.playerX, m.playerY, 3)
-			return m.checkForTreasure()
+			return m.checkCollisions()
 		}
 		if msg.Type == tea.KeyRight && m.get(m.playerX+1, m.playerY)%2 == 0 {
 			m.set(m.playerX, m.playerY, 0)
 			m.playerX += 1
 			m.set(m.playerX, m.playerY, 3)
-			return m.checkForTreasure()
+			return m.checkCollisions()
 		}
 	case tea.WindowSizeMsg:
 		// on resize, generate a new Maze

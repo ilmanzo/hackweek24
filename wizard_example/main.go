@@ -108,6 +108,7 @@ func (w wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				w.nickname = w.input.Value()
 				w.currentStep = StepLikesCats
 				w.input.Reset() // Clear the text input
+				w.input.SetSuggestions([]string{"Yes", "No"})
 			} else if w.currentStep == StepLikesCats {
 				answer := w.input.Value()
 				if len(answer) > 0 && (answer[0] == 'Y' || answer[0] == 'y') {
