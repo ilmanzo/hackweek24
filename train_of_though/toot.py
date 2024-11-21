@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-# fiddle around with ANSI sequences, coloring and text formatting
+# program purpose: simple amusement and fiddle around with 
+# ANSI sequences, coloring and text formatting
 
 from random import randrange
 from shutil import which
@@ -79,10 +80,9 @@ while True:
     if len(quotes) < 5:
         break
 
+# embed the output of fortune inside the blank bubble space
 for i, q in enumerate(quotes):
     train[i+2] = insert_string_fixed_length(train[i+2], q)
-
-# run fortune program and fits the output inside a 4x48 = 192 chars
 
 print(random_color())
 print("\n".join(train))
