@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-# program purpose: simple amusement and fiddle around with 
+# SUSE HackWeek 2024
+# T.o.O.T: Train oOf Thought
+# program purpose: simple amusement and fiddle around with
 # ANSI sequences, coloring and text formatting
 
 from random import randrange
@@ -59,7 +61,7 @@ if not has_fortune():
 
 # ASCII train art from https://www.asciiart.eu/vehicles/trains
 train = [
-  "ToOT : THE Train OOF Thought - SUSE HackWeek 2024",
+  "ToOT : The Train OoF Thought - SUSE HackWeek 2024",
   "                 _-====-__-======-__-========-_____-============-__",
   "               _(                                                 _)",
   "            OO(                                                   )_",
