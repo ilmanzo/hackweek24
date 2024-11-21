@@ -25,5 +25,5 @@ func main() {
 		fmt.Printf("Unexpected model type: %T\n", maze)
 		os.Exit(1)
 	}
-	fmt.Printf("\n Good! You walked %d steps to get the ticket\n", maze.StepsDone)
+	fmt.Printf("===========================================\nGood! You walked %d steps to get the ticket\n", maze.StepsDone)
 }

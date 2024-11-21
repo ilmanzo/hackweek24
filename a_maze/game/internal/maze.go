@@ -93,21 +93,23 @@ func NewMaze(w, h int) MazeModel {
 	for i := 0; i < (w*h)/5; i++ {
 		m.set(2+rand.Intn(w-3), 2+rand.Intn(h-3), 0)
 	}
-	//place player (+/- in the center)
-	m.playerX = w / 2
-	m.playerY = h / 2
-	m.set(m.playerX, m.playerY, PlayerCell)
-	//some doors (random)
+	// drop some doors (at random)
 	for i := 0; i < nDoors; i++ {
 		m.doorsX[i] = 3 + rand.Intn(w-4)
 		m.doorsY[i] = 3 + rand.Intn(h-4)
 		m.set(m.doorsX[i], m.doorsY[i], DoorCell)
 	}
-	//treasure (random)
-	m.treasureX = 3 + rand.Intn(w-4)
-	m.treasureY = 3 + rand.Intn(h-4)
+	//place player (+/- in the center)
+	m.playerX, m.playerY = w/2, h/2
+	m.set(m.playerX, m.playerY, PlayerCell)
+	//treasure (in random place)
+	var x, y int
+	for x != m.playerX && y != m.playerY {
+		x = 3 + rand.Intn(w-4)
+		y = 3 + rand.Intn(h-4)
+	}
+	m.treasureX, m.treasureY = x, y
 	m.set(m.treasureX, m.treasureY, TreasureCell)
-
 	return m
 }
 
