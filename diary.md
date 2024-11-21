@@ -12,7 +12,10 @@
 - 21/11/2024 Day 4
   Re-used part of the maze code to implement a simple game. I tried to separate code in two different packages and now it runs without any timer, changing state (and using system resources) only on user input events. Now each maze cell is two characters wide, but in the model is still represented as one byte.
   Had an issue on a type assertion while learning how to fetch values from a Model after the UI quits, solved with the correct pointer usage
-  
+  Updated readme with screenshots 
+
+
+
 
   
 
