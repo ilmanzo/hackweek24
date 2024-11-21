@@ -27,7 +27,7 @@ You can find other projects and details about HackWeek [here](https://hackweek.o
 
 - 60 pfs animation of a bouncing ball with sprite priority
 ![ball1](screenshots/geeko_ball_1.png)
-![ball2](screenshots/geeko_ball_1.png)
+![ball2](screenshots/geeko_ball_2.png)
 
 - Hackweek logo rendered using text mode fixed width font
 ![tlogo](screenshots/terminal_logo.png)
