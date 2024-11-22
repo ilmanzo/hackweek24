@@ -134,6 +134,7 @@ func (m *MazeModel) checkCollisions() (tea.Model, tea.Cmd) {
 	for i := 0; i < nDoors; i++ {
 		if m.playerX == m.doorsX[i] && m.playerY == m.doorsY[i] {
 			m.set(m.playerX, m.playerY, EmptyCell)
+			m.doorsX[i], m.doorsY[i] = 0, 0
 			m.playerX = m.width / 2
 			m.playerY = m.height / 2
 			m.set(m.playerX, m.playerY, PlayerCell)

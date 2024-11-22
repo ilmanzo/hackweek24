@@ -27,13 +27,15 @@ You can find other projects and details about HackWeek [here](https://hackweek.o
 ![maze](screenshots/maze.gif)
 
 - 60 pfs animation of a bouncing ball with sprite priority
+![ball](screenshots/ball.gif)
 ![ball1](screenshots/geeko_ball_1.png)
 ![ball2](screenshots/geeko_ball_2.png)
-![ball](screenshots/ball.gif)
 
 - TooT - train of thoughts
 ![train1](screenshots/toot_1.png)
+![train2](screenshots/toot_2.png)
+![train3](screenshots/toot_3.png)
 
-- Hackweek logo rendered using text mode fixed width font
+- Hackweek logo rendered using text mode fixed width font half-block chars
 ![tlogo](screenshots/terminal_logo.png)
 
