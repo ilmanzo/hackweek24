@@ -14,7 +14,12 @@
   Had an issue on a type assertion while learning how to fetch values from a Model after the UI quits, solved with the correct pointer usage
   Updated readme with screenshots 
 
+- 22/11/2024 Day 5
+  Prepared a small design example of a wizard-style application; polished up the maze game, adding teleport doors and counting steps.
+  Used asciinema with agg (gif converter) to prepare an animated screenshot of the maze game
 
+
+Retrospective
 
 
   

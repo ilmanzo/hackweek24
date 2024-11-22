@@ -80,8 +80,8 @@ func NewMaze(w, h int) MazeModel {
 	}
 	// starting on the upper row, for each cell
 	// flip a coin in order to decide which direction to carve
-	for y := 1; y < h-1; y += 2 {
-		for x := 1; x < w-1; x += 2 {
+	for y := 1; y < h-2; y += 2 {
+		for x := 1; x < w-2; x += 2 {
 			if rand.Intn(2) == 1 {
 				m.set(x+1, y, 0)
 			} else {
@@ -89,9 +89,9 @@ func NewMaze(w, h int) MazeModel {
 			}
 		}
 	}
-	// carve some extra random spots (20%)
+	// carve some extra random spots
 	for i := 0; i < (w*h)/5; i++ {
-		m.set(2+rand.Intn(w-3), 2+rand.Intn(h-3), 0)
+		m.set(1+rand.Intn(w-2), 1+rand.Intn(h-2), 0)
 	}
 	// drop some doors (at random)
 	for i := 0; i < nDoors; i++ {
@@ -133,7 +133,7 @@ func (m *MazeModel) checkCollisions() (tea.Model, tea.Cmd) {
 	m.StepsDone += 1
 	for i := 0; i < nDoors; i++ {
 		if m.playerX == m.doorsX[i] && m.playerY == m.doorsY[i] {
-			m.set(m.playerX, m.playerY, DoorCell)
+			m.set(m.playerX, m.playerY, EmptyCell)
 			m.playerX = m.width / 2
 			m.playerY = m.height / 2
 			m.set(m.playerX, m.playerY, PlayerCell)
